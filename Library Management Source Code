@@ -1,0 +1,163 @@
+#include<iostream>
+#include<string>
+#include<unordered_map>
+
+struct Book {
+    std::string title;
+    std::string author;
+    Book* next; // Pointer to the next book in the linked list
+
+    Book(std::string t, std::string a) : title(t), author(a), next(nullptr) {}
+};
+
+class Library {
+private:
+    Book* head; // Head of the linked list
+    std::unordered_map<std::string, Book*> titleMap; // Hash table for quick search by title
+    std::unordered_map<std::string, Book*> authorMap; // Hash table for quick search by author
+
+public:
+    Library() : head(nullptr) {}
+
+    void addBook(const std::string& title, const std::string& author) {
+        Book* newBook = new Book(title, author);
+        newBook->next = head; // Add to the front of the linked list
+        head = newBook;
+ // Update hash tables
+        titleMap[title] = newBook;
+        authorMap[author] = newBook;
+
+        std::cout << "Book added: " << title << " by " << author << std::endl;
+    }
+
+    void removeBook(const std::string& title) {
+        Book* current = head;
+        Book* previous = nullptr;
+
+        while (current != nullptr) {
+            if (current->title == title) {
+                if (previous == nullptr) { // Removing the head
+                    head = current->next;
+                } else {
+                    previous->next = current->next;
+                }
+
+                // Remove from hash tables
+                titleMap.erase(current->title);
+                authorMap.erase(current->author); // This is a simplification, as the author may have other books
+
+                delete current; // Free memory
+                std::cout << "Book removed: " << title << std::endl;
+                return;
+ }
+            previous = current;
+            current = current->next;
+        }
+
+        std::cout << "Book not found: " << title << std::endl;
+    }
+
+    Book* searchByTitle(const std::string& title) {
+        if (titleMap.find(title) != titleMap.end()) {
+            return titleMap[title];
+        }
+        return nullptr;
+    }
+
+    void searchByAuthor(const std::string& author) {
+        if (authorMap.find(author) != authorMap.end()) {
+            std::cout << "Books by " << author << ": " << std::endl;
+            Book* current = authorMap[author];
+            while (current != nullptr) {
+                if (current->author == author) {
+                    std::cout << "- " << current->title << std::endl;
+                }
+                current = current->next; // This is a simplification; ideally, we would store all titles
+            }
+        } else {
+ std::cout << "No books found by " << author << std::endl;
+        }
+    }
+
+    void displayBooks() {
+        if (head == nullptr) {
+            std::cout << "No books available." << std::endl;
+            return;
+        }
+
+        std::cout << "Available books:" << std::endl;
+        Book* current = head;
+        while (current != nullptr) {
+            std::cout << "- " << current->title << " by " << current->author << std::endl;
+            current = current->next;
+        }
+    }
+
+    ~Library() {
+        // Free all allocated memory
+        Book* current = head;
+        while (current != nullptr) {
+            Book* next = current->next;
+            delete current;
+            current = next;
+        }
+    }
+};
+
+int main() {
+    Library library;
+    int choice;
+    std::string title, author;
+
+    while (true) {
+        std::cout << "\nLibrary Management System Menu:\n";
+        std::cout << "1. Add Book\n";
+        std::cout << "2. Remove Book\n";
+        std::cout << "3. Search by Title\n";
+        std::cout << "4. Search by Author\n";
+        std::cout << "5. Display All Books\n";
+        std::cout << "6. Exit\n";
+        std::cout << "Choose an option: ";
+        std::cin >> choice;
+        std::cin.ignore(); // Clear newline from input buffer
+
+        switch (choice) {
+            case 1:
+                std::cout << "Enter book title: ";
+                std::getline(std::cin, title);
+                std::cout << "Enter author: ";
+                std::getline(std::cin, author);
+                library.addBook(title, author);
+                break;
+case 2:
+                std::cout << "Enter book title to remove: ";
+                std::getline(std::cin, title);
+                library.removeBook(title);
+                break;
+            case 3:
+                std::cout << "Enter book title to search: ";
+                std::getline(std::cin, title);
+                if (Book* foundBook = library.searchByTitle(title)) {
+                    std::cout << "Found: " << foundBook->title << " by " << foundBook->author << std::endl;
+                } else {
+                    std::cout << "Book not found: " << title << std::endl;
+                }
+                break;
+            case 4:
+                std::cout << "Enter author name to search: ";
+                std::getline(std::cin, author);
+                library.searchByAuthor(author);
+                break;
+            case 5:
+                library.displayBooks();
+                break;
+            case 6:
+                std::cout << "Exiting the system." << std::endl;
+                return 0;
+            default:
+ std::cout << "Invalid choice. Please try again." << std::endl;
+        }
+    }
+
+return 0;
+}
